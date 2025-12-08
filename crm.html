@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM | Inbound AI Call System</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #22c55e;
+      --bg: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: var(--bg);
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+    .page { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Topbar */
+    .topbar {
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; background: #ffffff; border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(15,23,42,0.03); position: sticky; top: 0; z-index: 20;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-sub); }
+    .app-logo { display: flex; align-items: center; gap: 8px; }
+    .app-logo-mark {
+      width: 30px; height: 30px; border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #bfdbfe 35%, #2563eb 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #ffffff; font-size: 12px;
+      box-shadow: 0 8px 20px rgba(37,99,235,0.4);
+    }
+    .app-logo-text-main { font-weight: 700; font-size: 15px; letter-spacing: 0.04em; }
+    .app-logo-text-sub { font-size: 11px; color: var(--text-sub); }
+    .hamburger-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 999px;
+      border: 1px solid var(--border); background: #ffffff;
+      cursor: pointer; margin-right: 6px;
+    }
+    .hamburger-btn span { font-size: 18px; }
+    .user-pill {
+      padding: 4px 10px; border-radius: 999px; background: #f3f4ff;
+      border: 1px solid #e5e7ff; font-size: 11px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .user-avatar {
+      width: 20px; height: 20px; border-radius: 999px; background: #e5e7eb;
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+    }
+    .timestamp { font-size: 11px; color: var(--text-sub); }
+
+    /* Layout */
+    .layout { display: flex; flex: 1; min-height: 0; }
+    .sidebar {
+      width: 240px; background: #0f172a; color: #e5e7eb;
+      display: flex; flex-direction: column;
+      padding: 12px 10px; border-right: 1px solid rgba(15,23,42,0.8);
+      transition: transform 0.2s ease;
+    }
+    .sidebar-section-title {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #6b7280; margin: 10px 6px 4px;
+    }
+    .nav-list { list-style: none; margin-bottom: 8px; }
+    .nav-item { margin-bottom: 2px; }
+    .nav-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 8px; border-radius: 10px;
+      font-size: 12px; color: #d1d5db; cursor: pointer;
+    }
+    .nav-link span.icon { width: 18px; text-align: center; font-size: 14px; }
+    .nav-link.active {
+      background: linear-gradient(135deg,#2563eb,#1d4ed8); color: #ffffff;
+    }
+    .nav-link:hover:not(.active) { background: rgba(31,41,55,0.9); }
+    .nav-has-children .nav-link-parent { align-items: center; }
+    .nav-caret {
+      margin-left: auto; font-size: 10px; opacity: 0.7; transition: transform 0.15s ease;
+    }
+    .nav-link-parent.is-open .nav-caret { transform: rotate(180deg); }
+    .nav-sublist {
+      list-style: none; margin: 4px 0 0 26px; padding: 0; display: none;
+    }
+    .nav-sublist.is-open { display: block; }
+    .nav-sublink {
+      padding: 5px 6px; border-radius: 8px; font-size: 11px;
+      color: #9ca3af; cursor: pointer; display: block;
+    }
+    .nav-sublink:hover { background: rgba(31,41,55,0.9); color: #e5e7eb; }
+    .nav-sublink-active { background: rgba(37,99,235,0.25); color: #e5e7eb; }
+    .sidebar-footer {
+      margin-top: auto; padding-top: 8px;
+      border-top: 1px solid rgba(55,65,81,0.9);
+      font-size: 10px; color: #6b7280;
+    }
+    .sidebar-footer a { color: #9ca3af; }
+
+    @media (max-width: 880px) {
+      .sidebar {
+        position: fixed; top: 56px; bottom: 0; left: 0;
+        transform: translateX(-100%); z-index: 30;
+      }
+      .sidebar.is-open { transform: translateX(0); }
+      .sidebar-backdrop {
+        position: fixed; inset: 56px 0 0 0;
+        background: rgba(15,23,42,0.4); display: none; z-index: 25;
+      }
+      .sidebar-backdrop.is-open { display: block; }
+      .hamburger-btn { display: inline-flex; }
+    }
+    @media (min-width: 881px) {
+      .sidebar-backdrop { display: none; }
+      .hamburger-btn { display: none; }
+    }
+
+    /* Main */
+    .main {
+      flex: 1; padding: 16px 18px 20px;
+      min-width: 0; overflow: auto;
+    }
+    @media (max-width: 980px) { .main { padding-inline: 12px; } }
+    .main-header {
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      gap: 10px; align-items: flex-end; margin-bottom: 14px;
+    }
+    .main-title { font-size: 18px; font-weight: 600; }
+    .main-subtitle { font-size: 12px; color: var(--text-sub); }
+    .main-tools {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 7px; border-radius: 999px;
+      background: #eff6ff; color: #1d4ed8; font-size: 10px;
+    }
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 999px; background: var(--accent);
+    }
+    .btn-primary {
+      padding: 6px 10px; border-radius: 999px; border: none;
+      background: linear-gradient(135deg,#2563eb,#1d4ed8);
+      color: #ffffff; font-size: 12px; cursor: pointer;
+      box-shadow: 0 10px 22px rgba(37,99,235,0.35);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-outline {
+      padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: #ffffff;
+      font-size: 12px; cursor: pointer;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 22px rgba(15,23,42,0.03);
+      font-size: 11px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .card-title { font-size: 13px; font-weight: 600; }
+    .card-subtitle { font-size: 11px; color: var(--text-sub); }
+    .card-meta { font-size: 10px; color: var(--text-sub); margin-bottom: 6px; }
+
+    .input {
+      padding: 6px 8px; border-radius: 999px;
+      border: 1px solid var(--border); background: #ffffff;
+      font-size: 12px; min-width: 180px;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.5fr);
+      gap: 12px;
+    }
+    @media (max-width: 980px) {
+      .main-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .table-wrapper { flex: 1; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th, td { padding: 6px 6px; text-align: left; white-space: nowrap; }
+    th {
+      position: sticky; top: 0; background: #f9fafb;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600; color: #4b5563; z-index: 1;
+    }
+    tr:not(:last-child) td { border-bottom: 1px solid #f3f4f6; }
+    tr:hover td { background: #f9fafb; }
+
+    .customer-row { cursor: pointer; }
+    .customer-row.selected td { background: #eff6ff; }
+
+    .customer-name { font-weight: 600; }
+    .customer-sub { font-size: 10px; color: #6b7280; }
+
+    .tag {
+      display: inline-flex;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      font-size: 10px;
+      color: #374151;
+      margin-right: 3px;
+    }
+    .rank-gold { background: #fef3c7; color: #92400e; }
+    .rank-silver { background: #e5e7eb; color: #4b5563; }
+    .rank-bronze { background: #fee2e2; color: #b91c1c; }
+
+    /* 詳細パネル */
+    .detail-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .detail-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .detail-sub { font-size: 11px; color: #6b7280; }
+    .detail-section-title {
+      font-size: 11px; font-weight: 600;
+      margin-top: 8px; margin-bottom: 4px;
+    }
+    .detail-kv {
+      font-size: 11px;
+      display: grid;
+      grid-template-columns: 80px minmax(0,1fr);
+      row-gap: 2px; column-gap: 6px;
+      margin-bottom: 4px;
+    }
+    .detail-kv-label { color: #6b7280; }
+    .detail-kv-value { color: #111827; }
+
+    .history-list {
+      list-style: none;
+      margin: 0; padding: 0;
+      max-height: 260px;
+      overflow: auto;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    .history-item {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 11px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+      color: #6b7280;
+    }
+    .history-body {
+      font-size: 11px;
+      color: #111827;
+    }
+    .history-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      font-size: 10px;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-btn" id="sidebar-toggle" type="button">
+          <span>☰</span>
+        </button>
+        <div class="app-logo">
+          <div class="app-logo-mark">AI</div>
+          <div>
+            <div class="app-logo-text-main">Inbound Call System</div>
+            <div class="app-logo-text-sub">CRM</div>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="timestamp" id="timestamp"></span>
+        <div class="user-pill">
+          <div class="user-avatar">📇</div>
+          <span>CRM User</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="dashboard.html" class="nav-link">
+              <span class="icon">📊</span>
+              <span>ダッシュボード</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <div class="nav-link">
+              <span class="icon">📞</span>
+              <span>リアルタイム着信モニタ</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="sidebar-section-title">Management</div>
+        <ul class="nav-list">
+          <!-- ユーザー管理 -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent" id="nav-user-toggle">
+              <span class="icon">👥</span>
+              <span>ユーザー管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist" id="nav-user-sub">
+              <li><a href="users.html"  class="nav-sublink">ユーザー一覧</a></li>
+              <li><a href="groups.html" class="nav-sublink">グループ管理</a></li>
+              <li><a href="roles.html"  class="nav-sublink">権限管理</a></li>
+            </ul>
+          </li>
+
+          <!-- 電話システム管理 -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent" id="nav-telephony-toggle">
+              <span class="icon">🔢</span>
+              <span>電話システム管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist" id="nav-telephony-sub">
+              <li><a href="operators.html"    class="nav-sublink">オペレーター一覧</a></li>
+              <li><a href="ai-operators.html" class="nav-sublink">AIオペレーター一覧</a></li>
+              <li><a href="numbers.html"      class="nav-sublink">番号管理</a></li>
+              <li><a href="queues.html"       class="nav-sublink">コールキュー</a></li>
+              <li><a href="monitoring.html"   class="nav-sublink">モニタリング</a></li>
+              <li><a href="logs.html"         class="nav-sublink">ログ</a></li>
+            </ul>
+          </li>
+
+          <!-- AIシステム管理 -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent" id="nav-ai-toggle">
+              <span class="icon">🤖</span>
+              <span>AIシステム管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist" id="nav-ai-sub">
+              <li><a href="scenarios.html" class="nav-sublink">シナリオ管理</a></li>
+              <li><a href="ai-voices.html" class="nav-sublink">AI音声管理</a></li>
+              <li><a href="knowledge.html" class="nav-sublink">ナレッジ管理</a></li>
+            </ul>
+          </li>
+
+          <!-- 顧客情報管理 -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent is-open" id="nav-crm-toggle">
+              <span class="icon">📇</span>
+              <span>顧客情報管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist is-open" id="nav-crm-sub">
+              <li><a href="crm-integrations.html" class="nav-sublink">外部CRM連携</a></li>
+              <li><a href="crm.html"             class="nav-sublink nav-sublink-active">CRM</a></li>
+            </ul>
+          </li>
+        </ul>
+
+        <div class="sidebar-section-title">Other</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link">
+              <span class="icon">🏠</span>
+              <span>LPトップに戻る</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="sidebar-footer">
+          <div>© 2025 Inbound AI Call System</div>
+          <div><a href="#">利用状況レポート（後日実装）</a></div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main">
+        <div class="main-header">
+          <div>
+            <h1 class="main-title">CRM</h1>
+            <p class="main-subtitle">
+              簡易な顧客情報管理として、名前・電話番号・メールアドレスなどを検索し、通話・問い合わせ履歴を確認できます。
+            </p>
+          </div>
+          <div class="main-tools">
+            <div class="badge">
+              <span class="badge-dot"></span>
+              <span>顧客数：<span id="customer-count">0</span></span>
+            </div>
+            <button class="btn-primary" type="button" id="btn-new-customer">
+              ＋ 新規顧客登録
+            </button>
+          </div>
+        </div>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">顧客検索</h2>
+              <p class="card-subtitle">
+                顧客名・電話番号・メール・顧客IDで検索できます。コールオペレーション中にすぐ参照できることを想定しています。
+              </p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+              <input
+                type="text"
+                class="input"
+                id="search-customer"
+                placeholder="名前 / 電話番号 / メール / 顧客ID で検索"
+              >
+              <button type="button" class="btn-outline" id="search-clear">
+                条件クリア
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div class="main-grid">
+          <!-- 顧客リスト -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">顧客一覧</h2>
+                <p class="card-subtitle">
+                  検索結果が一覧で表示されます。行をクリックすると右側に詳細と履歴が表示されます。
+                </p>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>顧客名</th>
+                    <th>電話番号</th>
+                    <th>メールアドレス</th>
+                    <th>顧客ID</th>
+                    <th>ランク / ステータス</th>
+                    <th>担当者</th>
+                    <th>最終対応</th>
+                  </tr>
+                </thead>
+                <tbody id="customer-tbody">
+                  <tr class="customer-row"
+                      data-id="C0001"
+                      data-name="山本 花"
+                      data-phone="03-1234-5678"
+                      data-email="hana.yamamoto@example.com"
+                      data-rank="ゴールド"
+                      data-status="アクティブ"
+                      data-owner="佐藤 花子"
+                      data-company="株式会社サンプル"
+                      data-note="請求関連の問い合わせが多いVIP顧客です。"
+                  >
+                    <td>
+                      <div class="customer-name">山本 花</div>
+                      <div class="customer-sub">株式会社サンプル</div>
+                    </td>
+                    <td>03-1234-5678</td>
+                    <td>hana.yamamoto@example.com</td>
+                    <td>C0001</td>
+                    <td>
+                      <span class="tag rank-gold">ゴールド</span>
+                      <span class="tag">アクティブ</span>
+                    </td>
+                    <td>佐藤 花子</td>
+                    <td>2025/12/08 10:05（AI→有人引き継ぎ）</td>
+                  </tr>
+
+                  <tr class="customer-row"
+                      data-id="C0002"
+                      data-name="田中 一郎"
+                      data-phone="090-2222-3333"
+                      data-email="ichiro.tanaka@example.com"
+                      data-rank="シルバー"
+                      data-status="アクティブ"
+                      data-owner="田中 一郎（自社担当）"
+                      data-company="個人"
+                      data-note="サポートへの問い合わせが継続的に発生。技術的な質問が多い。"
+                  >
+                    <td>
+                      <div class="customer-name">田中 一郎</div>
+                      <div class="customer-sub">個人</div>
+                    </td>
+                    <td>090-2222-3333</td>
+                    <td>ichiro.tanaka@example.com</td>
+                    <td>C0002</td>
+                    <td>
+                      <span class="tag rank-silver">シルバー</span>
+                      <span class="tag">アクティブ</span>
+                    </td>
+                    <td>テクニカルサポートチーム</td>
+                    <td>2025/12/07 19:10（AIのみで完結）</td>
+                  </tr>
+
+                  <tr class="customer-row"
+                      data-id="C0003"
+                      data-name="鈴木 次郎"
+                      data-phone="080-5555-6666"
+                      data-email="jiro.suzuki@example.com"
+                      data-rank="ブロンズ"
+                      data-status="要フォロー"
+                      data-owner="山田 太郎"
+                      data-company="有限会社テスト"
+                      data-note="請求遅延が続いているため、フォロー中。"
+                  >
+                    <td>
+                      <div class="customer-name">鈴木 次郎</div>
+                      <div class="customer-sub">有限会社テスト</div>
+                    </td>
+                    <td>080-5555-6666</td>
+                    <td>jiro.suzuki@example.com</td>
+                    <td>C0003</td>
+                    <td>
+                      <span class="tag rank-bronze">ブロンズ</span>
+                      <span class="tag">要フォロー</span>
+                    </td>
+                    <td>山田 太郎</td>
+                    <td>2025/12/06 15:30（督促コール）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 詳細・履歴 -->
+          <section class="card" id="detail-panel">
+            <div class="detail-header">
+              <div class="detail-title" id="detail-name">顧客を選択してください</div>
+              <div class="detail-sub" id="detail-sub">顧客の基本情報と通話・問い合わせ履歴が表示されます。</div>
+            </div>
+
+            <div id="detail-body" style="display:none;">
+              <div class="detail-section-title">基本情報</div>
+              <div class="detail-kv">
+                <div class="detail-kv-label">顧客ID</div>
+                <div class="detail-kv-value" id="detail-id"></div>
+                <div class="detail-kv-label">電話番号</div>
+                <div class="detail-kv-value" id="detail-phone"></div>
+                <div class="detail-kv-label">メール</div>
+                <div class="detail-kv-value" id="detail-email"></div>
+                <div class="detail-kv-label">会社名</div>
+                <div class="detail-kv-value" id="detail-company"></div>
+                <div class="detail-kv-label">担当者</div>
+                <div class="detail-kv-value" id="detail-owner"></div>
+                <div class="detail-kv-label">ランク</div>
+                <div class="detail-kv-value" id="detail-rank"></div>
+                <div class="detail-kv-label">ステータス</div>
+                <div class="detail-kv-value" id="detail-status"></div>
+              </div>
+
+              <div class="detail-section-title">メモ</div>
+              <div style="font-size:11px;margin-bottom:6px;" id="detail-note"></div>
+
+              <div class="detail-section-title">問い合わせ・通話履歴</div>
+              <ul class="history-list" id="history-list">
+                <!-- JSで差し込み -->
+              </ul>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // サイドバー（モバイル）
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+    function toggleSidebar() {
+      sidebar.classList.toggle("is-open");
+      sidebarBackdrop.classList.toggle("is-open");
+    }
+    if (sidebarToggle) sidebarToggle.addEventListener("click", toggleSidebar);
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", toggleSidebar);
+
+    // タイムスタンプ
+    function updateTimestamp() {
+      const el = document.getElementById("timestamp");
+      if (!el) return;
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      el.textContent =
+        now.getFullYear() + "/" +
+        pad(now.getMonth() + 1) + "/" +
+        pad(now.getDate()) + " " +
+        pad(now.getHours()) + ":" +
+        pad(now.getMinutes()) + ":" +
+        pad(now.getSeconds());
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+
+    // メニュー開閉
+    const userToggle = document.getElementById("nav-user-toggle");
+    const userSub    = document.getElementById("nav-user-sub");
+    if (userToggle && userSub) {
+      userToggle.addEventListener("click", () => {
+        userSub.classList.toggle("is-open");
+        userToggle.classList.toggle("is-open");
+      });
+    }
+    const telephonyToggle = document.getElementById("nav-telephony-toggle");
+    const telephonySub    = document.getElementById("nav-telephony-sub");
+    if (telephonyToggle && telephonySub) {
+      telephonyToggle.addEventListener("click", () => {
+        telephonySub.classList.toggle("is-open");
+        telephonyToggle.classList.toggle("is-open");
+      });
+    }
+    const aiToggle = document.getElementById("nav-ai-toggle");
+    const aiSub    = document.getElementById("nav-ai-sub");
+    if (aiToggle && aiSub) {
+      aiToggle.addEventListener("click", () => {
+        aiSub.classList.toggle("is-open");
+        aiToggle.classList.toggle("is-open");
+      });
+    }
+    const crmToggle = document.getElementById("nav-crm-toggle");
+    const crmSub    = document.getElementById("nav-crm-sub");
+    if (crmToggle && crmSub) {
+      crmToggle.addEventListener("click", () => {
+        crmSub.classList.toggle("is-open");
+        crmToggle.classList.toggle("is-open");
+      });
+    }
+
+    // 顧客 検索 & 件数
+    const customerRows = Array.from(document.querySelectorAll(".customer-row"));
+    const customerCountLabel = document.getElementById("customer-count");
+    const searchInput = document.getElementById("search-customer");
+    const searchClear = document.getElementById("search-clear");
+
+    function applyCustomerFilter() {
+      const keyword = (searchInput.value || "").trim().toLowerCase();
+      let visible = 0;
+      customerRows.forEach(row => {
+        const id    = (row.dataset.id    || "").toLowerCase();
+        const name  = (row.dataset.name  || "").toLowerCase();
+        const phone = (row.dataset.phone || "").toLowerCase();
+        const email = (row.dataset.email || "").toLowerCase();
+        const match =
+          keyword === "" ||
+          id.includes(keyword) ||
+          name.includes(keyword) ||
+          phone.includes(keyword) ||
+          email.includes(keyword);
+        row.style.display = match ? "" : "none";
+        if (match) visible++;
+      });
+      customerCountLabel.textContent = visible.toString();
+    }
+    applyCustomerFilter();
+    searchInput.addEventListener("input", applyCustomerFilter);
+    searchClear.addEventListener("click", () => {
+      searchInput.value = "";
+      applyCustomerFilter();
+    });
+
+    // 簡易 履歴データ（実装時はAPIで取得する想定）
+    const mockHistories = {
+      "C0001": [
+        {
+          at: "2025/12/08 10:05",
+          type: "電話（AI→有人引き継ぎ）",
+          channel: "インバウンド",
+          summary: "請求金額の内訳確認。AIが一次対応後、オペレーターに転送して口頭で説明。",
+          tags: ["請求", "AI→有人"]
+        },
+        {
+          at: "2025/11/30 14:20",
+          type: "電話（AIのみ）",
+          channel: "インバウンド",
+          summary: "支払期日と振込先口座の案内。AIのみで完結。",
+          tags: ["請求", "AI完結"]
+        }
+      ],
+      "C0002": [
+        {
+          at: "2025/12/07 19:10",
+          type: "電話（AIのみ）",
+          channel: "インバウンド",
+          summary: "ログインエラーについての問い合わせ。パスワードリセット手順を案内し完結。",
+          tags: ["テクニカル", "AI完結"]
+        },
+        {
+          at: "2025/11/25 11:45",
+          type: "メール（外部CRM連携）",
+          channel: "メール",
+          summary: "バージョンアップに関する質問。外部CRM側のチケットに連携済み。",
+          tags: ["テクニカル", "外部CRM"]
+        }
+      ],
+      "C0003": [
+        {
+          at: "2025/12/06 15:30",
+          type: "電話（督促コール）",
+          channel: "アウトバウンド",
+          summary: "支払い遅延に関する督促。本人不在のため折り返し待ち。",
+          tags: ["督促", "未完了"]
+        },
+        {
+          at: "2025/11/28 09:10",
+          type: "電話（AI→有人引き継ぎ）",
+          channel: "インバウンド",
+          summary: "請求内容に対する異議申し立て。担当者が詳細確認中。",
+          tags: ["請求", "エスカレーション"]
+        }
+      ]
+    };
+
+    // 詳細パネル
+    const detailName    = document.getElementById("detail-name");
+    const detailSub     = document.getElementById("detail-sub");
+    const detailBody    = document.getElementById("detail-body");
+    const detailId      = document.getElementById("detail-id");
+    const detailPhone   = document.getElementById("detail-phone");
+    const detailEmail   = document.getElementById("detail-email");
+    const detailCompany = document.getElementById("detail-company");
+    const detailOwner   = document.getElementById("detail-owner");
+    const detailRank    = document.getElementById("detail-rank");
+    const detailStatus  = document.getElementById("detail-status");
+    const detailNote    = document.getElementById("detail-note");
+    const historyList   = document.getElementById("history-list");
+
+    let selectedRow = null;
+
+    function renderHistory(customerId) {
+      historyList.innerHTML = "";
+      const items = mockHistories[customerId] || [];
+      if (items.length === 0) {
+        const li = document.createElement("li");
+        li.className = "history-item";
+        li.textContent = "履歴はまだありません。";
+        historyList.appendChild(li);
+        return;
+      }
+      items.forEach(item => {
+        const li = document.createElement("li");
+        li.className = "history-item";
+
+        const meta = document.createElement("div");
+        meta.className = "history-meta";
+        meta.innerHTML = `<span>${item.at}</span><span>${item.type} / ${item.channel}</span>`;
+        li.appendChild(meta);
+
+        const tagsDiv = document.createElement("div");
+        item.tags.forEach(t => {
+          const span = document.createElement("span");
+          span.className = "history-tag";
+          span.textContent = t;
+          tagsDiv.appendChild(span);
+        });
+        li.appendChild(tagsDiv);
+
+        const body = document.createElement("div");
+        body.className = "history-body";
+        body.textContent = item.summary;
+        li.appendChild(body);
+
+        historyList.appendChild(li);
+      });
+    }
+
+    customerRows.forEach(row => {
+      row.addEventListener("click", () => {
+        if (selectedRow) selectedRow.classList.remove("selected");
+        selectedRow = row;
+        selectedRow.classList.add("selected");
+
+        const id    = row.dataset.id || "";
+        const name  = row.dataset.name || "";
+        const phone = row.dataset.phone || "";
+        const email = row.dataset.email || "";
+        const rank  = row.dataset.rank || "";
+        const status = row.dataset.status || "";
+        const owner = row.dataset.owner || "";
+        const company = row.dataset.company || "";
+        const note  = row.dataset.note || "";
+
+        detailName.textContent = name;
+        detailSub.textContent  = company ? company : "顧客詳細情報";
+        detailId.textContent      = id;
+        detailPhone.textContent   = phone;
+        detailEmail.textContent   = email;
+        detailCompany.textContent = company || "-";
+        detailOwner.textContent   = owner || "-";
+        detailRank.textContent    = rank || "-";
+        detailStatus.textContent  = status || "-";
+        detailNote.textContent    = note || "-";
+
+        detailBody.style.display = "block";
+        renderHistory(id);
+      });
+    });
+
+    // 新規顧客（ダミー）
+    document.getElementById("btn-new-customer")
+      .addEventListener("click", () => {
+        alert("【ダミー】新規顧客登録画面に遷移する想定です。");
+      });
+  </script>
+</body>
+</html>

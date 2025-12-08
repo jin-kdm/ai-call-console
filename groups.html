@@ -1,0 +1,182 @@
+<!-- main 部分だけ差し替え -->
+<main class="main">
+  <div class="main-header">
+    <div>
+      <h1 class="main-title">グループ管理</h1>
+      <p class="main-subtitle">
+        部署やチーム単位のグループを管理します。グループごとにデフォルトロールや割り当てキューを設定します。
+      </p>
+    </div>
+    <div class="main-tools">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>グループ数：<span id="group-count">0</span></span>
+      </div>
+      <button class="btn-primary" type="button" id="btn-new-group">
+        ＋ 新規グループ作成
+      </button>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">グループ一覧</h2>
+        <p class="card-subtitle">
+          部署/チームごとのグループと、メンバー数・デフォルトロール・紐づくコールキューを一覧します。
+        </p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <input
+          type="text"
+          class="input"
+          id="search-group"
+          placeholder="グループ名 / ロール / キュー名 で検索"
+        >
+        <button type="button" class="btn-outline" id="search-group-clear">
+          条件クリア
+        </button>
+      </div>
+    </div>
+
+    <p class="card-meta">
+      ※ 実装時には、グループごとに通知ポリシーやエスカレーション設定を持たせることも想定できます。
+    </p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>グループ名</th>
+            <th>説明</th>
+            <th>メンバー数</th>
+            <th>デフォルトロール</th>
+            <th>割り当てキュー</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="group-tbody">
+          <tr class="group-row"
+              data-name="コールセンター"
+              data-role="オペレーター"
+              data-queues="メイン窓口キュー, 請求窓口キュー">
+            <td>
+              <div class="user-name">コールセンター</div>
+            </td>
+            <td>各種問い合わせの一次受付チーム</td>
+            <td>24</td>
+            <td><span class="tag">オペレーター</span></td>
+            <td>
+              <span class="tag">メイン窓口キュー</span>
+              <span class="tag">請求窓口キュー</span>
+            </td>
+            <td>
+              <button type="button" class="btn-inline edit">編集</button>
+              <button type="button" class="btn-inline permission">メンバー管理</button>
+              <button type="button" class="btn-inline disable">削除</button>
+            </td>
+          </tr>
+
+          <tr class="group-row"
+              data-name="テクニカルサポート"
+              data-role="スーパーバイザー"
+              data-queues="テクニカルサポートキュー">
+            <td>
+              <div class="user-name">テクニカルサポート</div>
+            </td>
+            <td>技術的な問い合わせを担当するエスカレーションチーム</td>
+            <td>8</td>
+            <td><span class="tag">スーパーバイザー</span></td>
+            <td>
+              <span class="tag">テクニカルサポートキュー</span>
+            </td>
+            <td>
+              <button type="button" class="btn-inline edit">編集</button>
+              <button type="button" class="btn-inline permission">メンバー管理</button>
+              <button type="button" class="btn-inline disable">削除</button>
+            </td>
+          </tr>
+
+          <tr class="group-row"
+              data-name="経営企画"
+              data-role="レポート閲覧のみ"
+              data-queues="">
+            <td>
+              <div class="user-name">経営企画</div>
+            </td>
+            <td>通話統計の閲覧と分析を行うバックオフィスチーム</td>
+            <td>3</td>
+            <td><span class="tag">レポート閲覧のみ</span></td>
+            <td>
+              <span class="tag">（キュー割当なし）</span>
+            </td>
+            <td>
+              <button type="button" class="btn-inline edit">編集</button>
+              <button type="button" class="btn-inline permission">メンバー管理</button>
+              <button type="button" class="btn-inline disable">削除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  // グループ数 & 検索
+  const groupRows = Array.from(document.querySelectorAll(".group-row"));
+  const groupCountLabel = document.getElementById("group-count");
+  const groupSearchInput = document.getElementById("search-group");
+  const groupSearchClear = document.getElementById("search-group-clear");
+
+  function applyGroupFilter() {
+    const keyword = (groupSearchInput.value || "").trim().toLowerCase();
+    let visible = 0;
+    groupRows.forEach(row => {
+      const name   = (row.dataset.name   || "").toLowerCase();
+      const role   = (row.dataset.role   || "").toLowerCase();
+      const queues = (row.dataset.queues || "").toLowerCase();
+      const match =
+        keyword === "" ||
+        name.includes(keyword) ||
+        role.includes(keyword) ||
+        queues.includes(keyword);
+      row.style.display = match ? "" : "none";
+      if (match) visible++;
+    });
+    groupCountLabel.textContent = visible.toString();
+  }
+  applyGroupFilter();
+  groupSearchInput.addEventListener("input", applyGroupFilter);
+  groupSearchClear.addEventListener("click", () => {
+    groupSearchInput.value = "";
+    applyGroupFilter();
+  });
+
+  // 操作ボタン（ダミー）
+  document.getElementById("btn-new-group").addEventListener("click", () => {
+    alert("【ダミー】新規グループ作成画面に遷移する想定です。");
+  });
+
+  groupRows.forEach(row => {
+    const name = row.dataset.name || "";
+    const editBtn = row.querySelector(".btn-inline.edit");
+    const memBtn  = row.querySelector(".btn-inline.permission");
+    const delBtn  = row.querySelector(".btn-inline.disable");
+
+    editBtn.addEventListener("click", () => {
+      alert("【ダミー】グループ「" + name + "」の編集画面に遷移する想定です。");
+    });
+
+    memBtn.addEventListener("click", () => {
+      alert("【ダミー】グループ「" + name + "」のメンバー管理画面に遷移する想定です。");
+    });
+
+    delBtn.addEventListener("click", () => {
+      const ok = confirm("グループ「" + name + "」を削除しますか？\n所属しているユーザーの権限に影響する可能性があります。");
+      if (!ok) return;
+      row.remove();
+      applyGroupFilter();
+    });
+  });
+</script>

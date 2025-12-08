@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIコールシステム（インバウンド）</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff4ff;
+      --accent: #22c55e;
+      --bg: #f5f7fb;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+      --border: #e5e7eb;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e0edff 0, #f5f7fb 38%, #ffffff 100%);
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 16px 20px 40px;
+    }
+
+    /* Header */
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+      border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 10px 20px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #bfdbfe 35%, #2563eb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+      font-size: 13px;
+    }
+
+    .logo-text-main {
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: 0.04em;
+    }
+
+    .logo-text-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .nav a {
+      padding: 4px 0;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav a:hover {
+      color: var(--text-main);
+      border-bottom-color: rgba(37, 99, 235, 0.4);
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-sm-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.9);
+  cursor: pointer;
+}
+
+
+    .btn-sm-outline:hover {
+      border-color: var(--primary);
+    }
+
+    .btn-sm-primary {
+      font-size: 12px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-sm-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    /* Hero */
+
+    .hero {
+      padding: 32px 0 10px;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: center;
+    }
+
+    .hero-title-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(219, 234, 254, 0.9);
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .hero-badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .hero-title {
+      font-size: clamp(26px, 4vw, 32px);
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+      margin-bottom: 10px;
+    }
+
+    .hero-title span.highlight {
+      background: linear-gradient(120deg, #2563eb, #22c55e);
+      -webkit-background-clip: text;
+      color: transparent;
+      font-weight: 800;
+    }
+
+    .hero-subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .btn-lg-primary,
+    .btn-lg-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 10px 18px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-lg-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      box-shadow: 0 18px 30px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-lg-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn-lg-ghost {
+      background: rgba(255,255,255,0.9);
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .btn-lg-ghost:hover {
+      border-color: var(--primary);
+    }
+
+    .hero-meta {
+      font-size: 11px;
+      color: var(--text-sub);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .hero-meta-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 999px;
+      background: #d1d5db;
+    }
+
+    /* Right panel (call preview) */
+
+    .hero-panel {
+      background: radial-gradient(circle at top left, #eff6ff 0, #ffffff 45%, #e5f3ff 100%);
+      border-radius: var(--radius-xl);
+      padding: 20px 18px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(191, 219, 254, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .hero-panel-pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.07);
+      font-size: 11px;
+    }
+
+    .hero-panel-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .call-window {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 18px;
+      padding: 12px;
+      color: #e5e7eb;
+      font-size: 11px;
+    }
+
+    .call-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .caller-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .caller-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #4b5563, #0f172a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .caller-name {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .caller-number {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .call-timer {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .call-body {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .bubble {
+      padding: 7px 9px;
+      border-radius: 11px;
+      max-width: 100%;
+      margin-bottom: 6px;
+    }
+
+    .bubble-user {
+      background: rgba(31, 41, 55, 1);
+      align-self: flex-start;
+    }
+
+    .bubble-ai {
+      background: linear-gradient(135deg, #2563eb, #0ea5e9);
+      align-self: flex-start;
+      color: #e5f2ff;
+    }
+
+    .bubble-label {
+      font-size: 9px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+
+    .log-panel {
+      background: rgba(15, 23, 42, 0.92);
+      border-radius: 11px;
+      padding: 7px 8px;
+      font-size: 10px;
+      color: #9ca3af;
+      border: 1px solid rgba(55,65,81,0.9);
+    }
+
+    .log-item {
+      margin-bottom: 4px;
+    }
+
+    .log-item strong {
+      color: #e5e7eb;
+    }
+
+    .call-footer {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .call-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .call-btn-green {
+      background: #22c55e;
+      color: #ffffff;
+    }
+
+    .call-btn-red {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .hero-panel-tag {
+      position: absolute;
+      bottom: 10px;
+      right: 14px;
+      font-size: 9px;
+      color: #64748b;
+      background: rgba(255,255,255,0.8);
+      border-radius: 999px;
+      padding: 4px 8px;
+    }
+
+    /* Features section */
+
+    .features {
+      padding-top: 26px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .section-subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      font-size: 12px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.98);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .feature-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      margin-bottom: 6px;
+    }
+
+    .feature-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .feature-text {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .feature-meta {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    /* Footer */
+
+    .footer {
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 12px 20px 16px;
+      font-size: 10px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    @media (max-width: 880px) {
+      .hero-inner {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .hero-panel {
+        order: -1;
+      }
+      .features-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header-inner {
+        padding-inline: 12px;
+      }
+      .nav {
+        display: none; /* シンプルにするため、一旦スマホでは非表示 */
+      }
+      .container {
+        padding-inline: 14px;
+      }
+      .features-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo-area">
+          <div class="logo-mark">AI</div>
+          <div>
+            <div class="logo-text-main">Inbound Call System</div>
+            <div class="logo-text-sub">AI自動応答・着信受付プラットフォーム</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <a href="#features">機能</a>
+          <a href="#flow">動作イメージ</a>
+          <a href="#contact">お問い合わせ</a>
+          <div class="nav-cta">
+            <!-- ログインは login.html へ遷移 -->
+            <a class="btn-sm-outline" href="login.html">ログイン</a>
+            <button class="btn-sm-primary" type="button">無料トライアル</button>
+          </div>          
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="container">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-inner">
+          <div>
+            <div class="hero-title-badge">
+              <span class="hero-badge-dot"></span>
+              24時間365日、AIが着信受付
+            </div>
+            <h1 class="hero-title">
+              電話対応を <span class="highlight">シナリオとLLM</span> で自動化する  
+              インバウンドAIコールシステム
+            </h1>
+            <p class="hero-subtitle">
+              顧客からの着信をWebブラウザ上でAIが自動応答。<br>
+              シナリオベース＋音声認識＋LLMで、案内・ヒアリング・転送まで一気通貫で実現します。
+            </p>
+
+            <div class="hero-actions">
+              <button class="btn-lg-primary" id="start-demo" type="button">
+                デモを開始する
+                <span aria-hidden="true">▶</span>
+              </button>
+              <button class="btn-lg-ghost" id="open-console" type="button">
+                管理コンソールを開く
+              </button>
+            </div>
+
+            <div class="hero-meta">
+              <span>・ブラウザのみで動作 / Webアプリ</span>
+              <span class="hero-meta-dot"></span>
+              <span>・シナリオ編集と音声ログ確認</span>
+              <span class="hero-meta-dot"></span>
+              <span>・Twilio / SIP / ZoomPhoneなどと連携予定</span>
+            </div>
+          </div>
+
+          <!-- Call Preview Panel -->
+          <div class="hero-panel">
+            <div class="hero-panel-header">
+              <span class="hero-panel-pill">着信中のAI対応プレビュー</span>
+              <div class="hero-panel-status">
+                <span class="status-dot"></span>
+                <span>ACD: AIオペレーター割当済み</span>
+              </div>
+            </div>
+
+            <div class="call-window">
+              <div class="call-header">
+                <div class="caller-info">
+                  <div class="caller-avatar">📞</div>
+                  <div>
+                    <div class="caller-name">着信中のお客様</div>
+                    <div class="caller-number">+81-90-XXXX-XXXX</div>
+                  </div>
+                </div>
+                <div class="call-timer">00:42</div>
+              </div>
+
+              <div class="call-body">
+                <div>
+                  <div class="bubble bubble-user">
+                    <div class="bubble-label">Caller</div>
+                    <div>もしもし、料金の確認をしたくて電話しました。</div>
+                  </div>
+                  <div class="bubble bubble-ai">
+                    <div class="bubble-label">AI Operator</div>
+                    <div>
+                      お電話ありがとうございます。<br>
+                      AI自動応答システムです。ご契約中のプラン名をお伺いしてもよろしいでしょうか？
+                    </div>
+                  </div>
+                </div>
+                <div class="log-panel">
+                  <div class="log-item">
+                    <strong>STT:</strong> もしもし、料金の確認をしたくて電話しました。
+                  </div>
+                  <div class="log-item">
+                    <strong>意図解析:</strong> 料金照会 / 既存顧客
+                  </div>
+                  <div class="log-item">
+                    <strong>ルーティング:</strong> シナリオ「料金案内フロー」にマッチ
+                  </div>
+                  <div class="log-item">
+                    <strong>次のアクション:</strong> 本人確認 → プラン情報の取得 → AI回答 or オペレーター転送
+                  </div>
+                </div>
+              </div>
+
+              <div class="call-footer">
+                <button class="call-btn call-btn-green" type="button" title="AI応答開始">
+                  ▶
+                </button>
+                <button class="call-btn call-btn-red" type="button" title="通話終了">
+                  ⛔
+                </button>
+              </div>
+            </div>
+
+            <div class="hero-panel-tag">
+              ※ 実際の動作は今後JavaScriptから接続予定
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="features" id="features">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">インバウンドAIコールに必要な機能をひとまとめに</h2>
+            <p class="section-subtitle">
+              ここで挙げている機能は仮案なので、開発を進めながら追加・変更していけます。
+            </p>
+          </div>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-label">着信制御</div>
+            <h3 class="feature-title">AIによる一次受付・IVR</h3>
+            <p class="feature-text">
+              電話着信をWebアプリ上で受け取り、AIが用件をヒアリング。営業時間外や混雑時も自動で一次対応を行います。
+            </p>
+            <div class="feature-meta">
+              例:「料金の確認」「解約相談」などを自動分類し、それぞれのシナリオに振り分け。
+            </div>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-label">シナリオ管理</div>
+            <h3 class="feature-title">シナリオ型 + LLMのハイブリッド</h3>
+            <p class="feature-text">
+              ステップごとのトークスクリプトと分岐条件をUI上で編集可能。曖昧な問い合わせにはLLMが柔軟に応答します。
+            </p>
+            <div class="feature-meta">
+              将来: 管理画面からシナリオの自動生成・エクスポート機能を追加。
+            </div>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-label">ログ/可視化</div>
+            <h3 class="feature-title">通話ログ・文字起こしの一元管理</h3>
+            <p class="feature-text">
+              通話内容を自動で文字起こしし、要約やタグ付けを実施。検索・フィルタ機能で後から必要な通話をすぐに探せます。
+            </p>
+            <div class="feature-meta">
+              音声ファイル + テキスト + 意図ラベルを紐づけて保存する前提。
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+      <div class="footer-inner">
+        <div>© 2025 Inbound AI Call System (仮) – Webアプリ版プロトタイプ</div>
+        <div>お問い合わせ・PoC相談は後でリンクを設置予定</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // 「デモを開始する」ボタン → ダッシュボード画面へ遷移
+    document.getElementById("start-demo")?.addEventListener("click", function () {
+      window.location.href = "dashboard.html";
+    });
+  
+    // 「管理コンソールを開く」は後で別画面に差し替え予定
+    document.getElementById("open-console")?.addEventListener("click", function () {
+      alert("ここで将来的に管理コンソール画面へ遷移させます。（仮動作）");
+    });
+  </script>
+  
+</body>
+</html>
