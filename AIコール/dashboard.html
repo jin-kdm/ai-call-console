@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ダッシュボード | Inbound AI Call System</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --bg: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+      --border: #e5e7eb;
+      --radius-lg: 16px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: var(--bg);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top header */
+    .topbar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .app-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-logo-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #bfdbfe 35%, #2563eb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 12px;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .app-logo-text-main {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+    }
+
+    .app-logo-text-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .hamburger-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    .hamburger-btn span {
+      font-size: 18px;
+    }
+
+    .user-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f3f4ff;
+      border: 1px solid #e5e7ff;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .realtime-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .realtime-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .timestamp {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 10px;
+      border-right: 1px solid rgba(15, 23, 42, 0.8);
+      transition: transform 0.2s ease;
+    }
+
+    .sidebar-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin: 10px 6px 4px;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      margin-bottom: 2px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #d1d5db;
+      cursor: pointer;
+    }
+
+    .nav-link span.icon {
+      width: 18px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .nav-link.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+    }
+
+    .nav-link:hover:not(.active) {
+      background: rgba(31, 41, 55, 0.9);
+    }
+
+    /* 親メニュー＋サブメニュー用 */
+.nav-has-children .nav-link-parent {
+  align-items: center;
+}
+
+.nav-caret {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.nav-link-parent.is-open .nav-caret {
+  transform: rotate(180deg);
+}
+
+.nav-sublist {
+  list-style: none;
+  margin: 4px 0 0 26px;
+  padding: 0;
+  display: none;
+}
+
+.nav-sublist.is-open {
+  display: block;
+}
+
+.nav-sublink {
+  padding: 5px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.nav-sublink:hover {
+  background: rgba(31, 41, 55, 0.9);
+  color: #e5e7eb;
+}
+
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(55, 65, 81, 0.9);
+      font-size: 10px;
+      color: #6b7280;
+    }
+
+    .sidebar-footer a {
+      color: #9ca3af;
+    }
+
+    /* Responsive sidebar (モバイル) */
+    @media (max-width: 880px) {
+      .sidebar {
+        position: fixed;
+        top: 56px;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        z-index: 30;
+      }
+
+      .sidebar.is-open {
+        transform: translateX(0);
+      }
+
+      .sidebar-backdrop {
+        position: fixed;
+        inset: 56px 0 0 0;
+        background: rgba(15, 23, 42, 0.4);
+        display: none;
+        z-index: 25;
+      }
+
+      .sidebar-backdrop.is-open {
+        display: block;
+      }
+    }
+
+    @media (min-width: 881px) {
+      .hamburger-btn {
+        display: none;
+      }
+      .sidebar-backdrop {
+        display: none;
+      }
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 16px 18px 20px;
+      min-width: 0;
+      overflow: auto;
+    }
+
+    .main-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+
+    .main-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .main-subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .main-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .select {
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 12px;
+    }
+
+    .btn-outline {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.03);
+      font-size: 11px;
+    }
+
+    .stat-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      color: var(--text-sub);
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .stat-unit {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .stat-trend {
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    .stat-trend.down {
+      color: var(--danger);
+    }
+
+    .stat-bar {
+      position: relative;
+      height: 4px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .stat-bar-fill {
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      background: linear-gradient(90deg, #2563eb, #22c55e);
+    }
+
+    /* Lower layout: left (calls), right (summary) */
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 2.2fr 1.3fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.03);
+      font-size: 11px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 10px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .calls-table-wrapper {
+      flex: 1;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 5px 4px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #f9fafb;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+
+    tr:not(:last-child) td {
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    tr:hover td {
+      background: #f9fafb;
+    }
+
+    /* 行クリック用 */
+    .call-row {
+      cursor: pointer;
+    }
+
+    /* 転送待ちアラート行 */
+    .call-row-escalation td {
+      background: #fef2f2;
+      border-left: 3px solid var(--danger);
+    }
+
+    .call-row-escalation:hover td {
+      background: #fee2e2;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+    }
+
+    .status-waiting {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-talking {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-ended {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .status-ai {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-human {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .status-escalation {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .summary-section {
+      margin-bottom: 10px;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .summary-value {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .mini-card {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .mini-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-bottom: 2px;
+    }
+
+    .mini-value {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .mini-trend {
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    .mini-trend.down {
+      color: var(--danger);
+    }
+
+    .note {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 980px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .lower-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main {
+        padding-inline: 12px;
+      }
+      .stats-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* === モニタリング用モーダル === */
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      z-index: 40;
+    }
+
+    .modal-backdrop.is-open {
+      display: block;
+    }
+
+    .modal {
+      position: fixed;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(720px, 100% - 32px);
+      max-height: 84vh;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px 18px 12px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border);
+      display: none;
+      z-index: 50;
+      display: none;
+    }
+
+    .modal.is-open {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .modal-meta {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .modal-close-btn {
+      border: none;
+      background: #f3f4f6;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow: auto;
+      padding-top: 4px;
+    }
+
+    .monitor-summary {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 8px 9px;
+      border: 1px solid #e5e7eb;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .monitor-summary-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 3px;
+    }
+
+    .monitor-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .monitor-status-label {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .monitor-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 10px;
+    }
+
+    .monitor-status-note {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .monitor-stream {
+      margin-top: 4px;
+    }
+
+    .monitor-stream-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .monitor-stream-log {
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 8px;
+      max-height: 260px;
+      overflow: auto;
+      font-size: 11px;
+    }
+
+    .turn {
+      margin-bottom: 6px;
+    }
+
+    .turn-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-bottom: 1px;
+    }
+
+    .turn-content {
+      background: #f9fafb;
+      border-radius: 7px;
+      padding: 4px 6px;
+    }
+
+    .turn-content-ai {
+      background: #eff6ff;
+    }
+
+    .modal-footer {
+      padding-top: 6px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-sub);
+      gap: 8px;
+    }
+
+    .modal-footer-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .btn-sm-primary {
+      border-color: var(--primary);
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    @media (max-width: 640px) {
+      .modal {
+        top: 4%;
+        padding-inline: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-btn" id="sidebar-toggle" type="button">
+          <span>☰</span>
+        </button>
+        <div class="app-logo">
+          <div class="app-logo-mark">AI</div>
+          <div>
+            <div class="app-logo-text-main">Inbound Call System</div>
+            <div class="app-logo-text-sub">コールセンター ダッシュボード</div>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="realtime-indicator">
+          <span class="realtime-dot"></span>
+          <span>リアルタイム更新（サンプル）</span>
+        </div>
+        <span class="timestamp" id="timestamp"></span>
+        <div class="user-pill">
+          <div class="user-avatar">👤</div>
+          <span>Demo Operator</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar backdrop (for mobile) -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Layout -->
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <div class="nav-link active">
+              <span class="icon">📊</span>
+              <span>ダッシュボード</span>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="nav-link">
+              <span class="icon">📞</span>
+              <span>リアルタイム着信モニタ</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="sidebar-section-title">Management</div>
+        <ul class="nav-list">
+          <!-- ユーザー管理 -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent is-open" id="nav-user-toggle">
+              <span class="icon">👥</span>
+              <span>ユーザー管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist is-open" id="nav-user-sub">
+              <li><a href="users.html"      class="nav-sublink">ユーザー一覧</a></li>
+              <li><a href="groups.html"     class="nav-sublink">グループ管理</a></li>
+              <li><a href="roles.html"      class="nav-sublink">権限管理</a></li>
+            </ul>
+          </li>
+        
+          <!-- 電話システム管理（既存） -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent is-open" id="nav-telephony-toggle">
+              <span class="icon">🔢</span>
+              <span>電話システム管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist is-open" id="nav-telephony-sub">
+              <li><a href="operators.html"    class="nav-sublink">オペレーター一覧</a></li>
+              <li><a href="ai-operators.html" class="nav-sublink">AIオペレーター一覧</a></li>
+              <li><a href="numbers.html"      class="nav-sublink">番号管理</a></li>
+              <li><a href="queues.html"       class="nav-sublink">コールキュー</a></li>
+              <li><a href="monitoring.html"   class="nav-sublink">モニタリング</a></li>
+              <li><a href="logs.html"         class="nav-sublink">ログ</a></li>
+            </ul>
+          </li>
+        
+          <!-- AIシステム管理（既存） -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent is-open" id="nav-ai-toggle">
+              <span class="icon">🤖</span>
+              <span>AIシステム管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist is-open" id="nav-ai-sub">
+              <li><a href="scenarios.html"    class="nav-sublink">シナリオ管理</a></li>
+              <li><a href="ai-voices.html"    class="nav-sublink">AI音声管理</a></li>
+              <li><a href="knowledge.html"    class="nav-sublink">ナレッジ管理</a></li>
+            </ul>
+          </li>
+        
+          <!-- 顧客情報管理（元：システム設定） -->
+          <li class="nav-item nav-has-children">
+            <div class="nav-link nav-link-parent is-open" id="nav-crm-toggle">
+              <span class="icon">📇</span>
+              <span>顧客情報管理</span>
+              <span class="nav-caret">▾</span>
+            </div>
+            <ul class="nav-sublist is-open" id="nav-crm-sub">
+              <li><a href="crm-integrations.html" class="nav-sublink">外部CRM連携</a></li>
+              <li><a href="crm.html"             class="nav-sublink">CRM</a></li>
+            </ul>
+          </li>
+        </ul>
+        
+
+
+        <div class="sidebar-section-title">Other</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link">
+              <span class="icon">🏠</span>
+              <span>LPトップに戻る</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="sidebar-footer">
+          <div>© 2025 Inbound AI Call System</div>
+          <div><a href="#">利用状況レポート（後日実装）</a></div>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <div class="main-header">
+          <div>
+            <h1 class="main-title">インバウンド ダッシュボード</h1>
+            <p class="main-subtitle">
+              指標はあくまでサンプル値です。後でAPIから実データを連携する想定で設計します。
+            </p>
+          </div>
+          <div class="main-tools">
+            <select class="select" id="queue-select">
+              <option value="all">全てのキュー</option>
+              <option value="main">メイン窓口</option>
+              <option value="support">サポート窓口</option>
+            </select>
+            <button class="btn-outline" type="button" id="refresh-btn">今すぐ更新</button>
+          </div>
+        </div>
+
+        <!-- Stats cards -->
+        <section class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-label">
+              <span>現在の着信件数</span>
+              <span class="stat-trend" id="trend-incoming">+12% vs 前日</span>
+            </div>
+            <div class="stat-value">
+              <span id="stat-incoming">12</span>
+              <span class="stat-unit">件 / 現在</span>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-bar-fill" id="bar-incoming"></div>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">
+              <span>同時通話数</span>
+              <span class="stat-trend" id="trend-concurrent">+3セッション</span>
+            </div>
+            <div class="stat-value">
+              <span id="stat-concurrent">5</span>
+              <span class="stat-unit">通話</span>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-bar-fill" id="bar-concurrent"></div>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">
+              <span>応答率（本日）</span>
+              <span class="stat-trend" id="trend-answer">+4.2pt</span>
+            </div>
+            <div class="stat-value">
+              <span id="stat-answer">92.3</span>
+              <span class="stat-unit">%</span>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-bar-fill" id="bar-answer"></div>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">
+              <span>放棄呼率（本日）</span>
+              <span class="stat-trend down" id="trend-abandon">-1.8pt</span>
+            </div>
+            <div class="stat-value">
+              <span id="stat-abandon">3.4</span>
+              <span class="stat-unit">%</span>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-bar-fill" id="bar-abandon"></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- Lower: calls + summary -->
+        <section class="lower-grid">
+          <!-- Real-time calls -->
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">リアルタイム着信状況</h2>
+                <p class="card-subtitle">
+                  行をクリックすると、通話内容を文字起こしでモニタリングできます（サンプル）。
+                  赤い行は「AIで対応しきれず、有人オペレーターへの転送待ち」です。
+                </p>
+              </div>
+              <div class="badge">
+                <span class="badge-dot"></span>
+                <span>モニタリング中</span>
+              </div>
+            </div>
+            <div class="calls-table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>着信時刻</th>
+                    <th>発信者番号</th>
+                    <th>キュー</th>
+                    <th>状態</th>
+                    <th>経過時間</th>
+                    <th>担当</th>
+                  </tr>
+                </thead>
+                <tbody id="calls-tbody">
+                  <!-- 転送待ち（アラート対象） -->
+                  <tr
+                    class="call-row call-row-escalation"
+                    data-call-id="call-escalation-1"
+                    data-caller="090-1234-5678"
+                    data-queue="メイン窓口"
+                    data-status="転送待ち"
+                  >
+                    <td>10:15:32</td>
+                    <td>090-1234-5678</td>
+                    <td>メイン窓口</td>
+                    <td><span class="status-pill status-escalation">転送待ち</span></td>
+                    <td>00:48</td>
+                    <td><span class="status-pill status-ai">AIオペレーター</span></td>
+                  </tr>
+
+                  <!-- 通話中（有人） -->
+                  <tr
+                    class="call-row"
+                    data-call-id="call-human-1"
+                    data-caller="080-9876-5432"
+                    data-queue="サポート"
+                    data-status="通話中"
+                  >
+                    <td>10:14:05</td>
+                    <td>080-9876-5432</td>
+                    <td>サポート</td>
+                    <td><span class="status-pill status-talking">通話中</span></td>
+                    <td>02:12</td>
+                    <td><span class="status-pill status-human">鈴木</span></td>
+                  </tr>
+
+                  <!-- 終了済み（AI完結） -->
+                  <tr
+                    class="call-row"
+                    data-call-id="call-ai-end-1"
+                    data-caller="050-5555-1111"
+                    data-queue="メイン窓口"
+                    data-status="終了"
+                  >
+                    <td>10:13:48</td>
+                    <td>050-5555-1111</td>
+                    <td>メイン窓口</td>
+                    <td><span class="status-pill status-ended">終了</span></td>
+                    <td>03:08</td>
+                    <td><span class="status-pill status-ai">AIオペレーター</span></td>
+                  </tr>
+
+                  <!-- 通話中（有人） -->
+                  <tr
+                    class="call-row"
+                    data-call-id="call-human-2"
+                    data-caller="03-1234-0000"
+                    data-queue="請求窓口"
+                    data-status="通話中"
+                  >
+                    <td>10:12:21</td>
+                    <td>03-1234-0000</td>
+                    <td>請求窓口</td>
+                    <td><span class="status-pill status-talking">通話中</span></td>
+                    <td>04:55</td>
+                    <td><span class="status-pill status-human">田中</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <!-- Summary -->
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">本日のサマリー</h2>
+                <p class="card-subtitle">
+                  日単位の集計値のイメージです。ここから日/週/月別のレポート画面へ遷移できます。
+                </p>
+              </div>
+            </div>
+
+            <div class="summary-section">
+              <div class="summary-label">本日の総着信件数</div>
+              <div class="summary-value" id="summary-total">324 件</div>
+              <div class="summary-grid">
+                <div class="mini-card">
+                  <div class="mini-label">AIで完結</div>
+                  <div class="mini-value" id="summary-ai-complete">218 件</div>
+                  <div class="mini-trend">+15% vs 前日</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-label">有人転送された件数</div>
+                  <div class="mini-value" id="summary-human-transfer">72 件</div>
+                  <div class="mini-trend down">-5% vs 前日</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-section">
+              <div class="summary-label">平均指標（本日）</div>
+              <div class="summary-grid">
+                <div class="mini-card">
+                  <div class="mini-label">平均応答時間</div>
+                  <div class="mini-value" id="summary-asa">09.4 秒</div>
+                  <div class="mini-trend">SLA 目標: 10 秒</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-label">平均通話時間</div>
+                  <div class="mini-value" id="summary-aht">03:21</div>
+                  <div class="mini-trend">前日比 +8 秒</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-section">
+              <div class="summary-label">AI / 有人比率</div>
+              <div class="summary-grid">
+                <div class="mini-card">
+                  <div class="mini-label">AI完結率</div>
+                  <div class="mini-value" id="summary-ai-rate">67.3%</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-label">有人対応率</div>
+                  <div class="mini-value" id="summary-human-rate">32.7%</div>
+                </div>
+              </div>
+              <p class="note">
+                ※ すべてサンプル値です。実際はバックエンドの集計APIと連携して表示します。
+              </p>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- === 通話モニタリング用モーダル === -->
+  <div class="modal-backdrop" id="monitor-backdrop"></div>
+  <div class="modal" id="monitor-modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="monitor-title">通話モニタリング</div>
+        <div class="modal-meta" id="monitor-meta">発信者: - / キュー: - / 状態: -</div>
+      </div>
+      <button class="modal-close-btn" id="monitor-close" type="button">×</button>
+    </div>
+
+    <div class="modal-body">
+      <section class="monitor-summary">
+        <div class="monitor-summary-label">ここまでの内容の要約（サンプル）</div>
+        <div id="monitor-summary-text">
+          まだ要約がありません。
+        </div>
+      </section>
+
+      <section class="monitor-status">
+        <span class="monitor-status-label">ステータス / メモ:</span>
+        <span class="monitor-status-pill" id="monitor-status-pill">
+          -
+        </span>
+        <span class="monitor-status-note" id="monitor-status-note">
+          -
+        </span>
+      </section>
+
+      <section class="monitor-stream">
+        <div class="monitor-stream-label">
+          リアルタイムで更新される文字起こし（お客様発話 / AI応答）※ 現在はデモで数秒ごとに更新
+        </div>
+        <div class="monitor-stream-log" id="monitor-stream-log">
+          <!-- ここにJSでターンを追加 -->
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-footer">
+      <div>※ 実装時はSTT/LLM/TTSパイプラインからここにログを流し込む想定です。</div>
+      <div class="modal-footer-actions">
+        <button class="btn-sm" type="button" id="monitor-stop-stream">ささやき</button>
+        <button class="btn-sm btn-sm-primary" type="button" id="monitor-resume-stream">割り込み</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== サイドバー開閉（モバイル用） =====
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+
+    function toggleSidebar() {
+      sidebar.classList.toggle("is-open");
+      sidebarBackdrop.classList.toggle("is-open");
+    }
+
+    sidebarToggle.addEventListener("click", toggleSidebar);
+    sidebarBackdrop.addEventListener("click", toggleSidebar);
+
+  // Management メニュー開閉
+const telephonyToggle = document.getElementById("nav-telephony-toggle");
+const telephonySub    = document.getElementById("nav-telephony-sub");
+if (telephonyToggle && telephonySub) {
+  telephonyToggle.addEventListener("click", () => {
+    telephonySub.classList.toggle("is-open");
+    telephonyToggle.classList.toggle("is-open");
+  });
+}
+
+const aiToggle = document.getElementById("nav-ai-toggle");
+const aiSub    = document.getElementById("nav-ai-sub");
+if (aiToggle && aiSub) {
+  aiToggle.addEventListener("click", () => {
+    aiSub.classList.toggle("is-open");
+    aiToggle.classList.toggle("is-open");
+  });
+}
+
+// ★ 追加：ユーザー管理
+const userToggle = document.getElementById("nav-user-toggle");
+const userSub    = document.getElementById("nav-user-sub");
+if (userToggle && userSub) {
+  userToggle.addEventListener("click", () => {
+    userSub.classList.toggle("is-open");
+    userToggle.classList.toggle("is-open");
+  });
+}
+
+// ★ 追加：顧客情報管理（CRM）
+const crmToggle = document.getElementById("nav-crm-toggle");
+const crmSub    = document.getElementById("nav-crm-sub");
+if (crmToggle && crmSub) {
+  crmToggle.addEventListener("click", () => {
+    crmSub.classList.toggle("is-open");
+    crmToggle.classList.toggle("is-open");
+  });
+}
+
+    // ===== タイムスタンプ表示 =====
+    function updateTimestamp() {
+      const el = document.getElementById("timestamp");
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const text =
+        now.getFullYear() +
+        "/" +
+        pad(now.getMonth() + 1) +
+        "/" +
+        pad(now.getDate()) +
+        " " +
+        pad(now.getHours()) +
+        ":" +
+        pad(now.getMinutes()) +
+        ":" +
+        pad(now.getSeconds());
+      el.textContent = text;
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+
+    // ===== 簡易なサンプル値の更新 =====
+    const statIncoming = document.getElementById("stat-incoming");
+    const statConcurrent = document.getElementById("stat-concurrent");
+    const statAnswer = document.getElementById("stat-answer");
+    const statAbandon = document.getElementById("stat-abandon");
+
+    const barIncoming = document.getElementById("bar-incoming");
+    const barConcurrent = document.getElementById("bar-concurrent");
+    const barAnswer = document.getElementById("bar-answer");
+    const barAbandon = document.getElementById("bar-abandon");
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function refreshStats() {
+      const incoming = Math.round(randomInRange(5, 18));
+      const concurrent = Math.round(randomInRange(2, 10));
+      const answer = randomInRange(85, 97).toFixed(1);
+      const abandon = randomInRange(2, 8).toFixed(1);
+
+      statIncoming.textContent = incoming;
+      statConcurrent.textContent = concurrent;
+      statAnswer.textContent = answer;
+      statAbandon.textContent = abandon;
+
+      barIncoming.style.width = Math.min((incoming / 20) * 100, 100) + "%";
+      barConcurrent.style.width = Math.min((concurrent / 12) * 100, 100) + "%";
+      barAnswer.style.width = Math.min((answer / 100) * 100, 100) + "%";
+      barAbandon.style.width = Math.min((abandon / 20) * 100, 100) + "%";
+    }
+
+    document.getElementById("refresh-btn").addEventListener("click", refreshStats);
+    setInterval(refreshStats, 15000);
+
+    // ===== 通話モニタリング用データ（サンプル） =====
+    const callDetails = {
+      "call-escalation-1": {
+        summary:
+          "料金改定に関する問い合わせ。AIで基本説明は行ったが、『なぜ自分だけ請求が高いのか』という点について説明への納得が得られず、感情的になりつつあるため有人オペレーターへ転送待ち。",
+        statusLabel: "転送待ち（クレーム対応）",
+        statusNote: "AIでは説明の説得力が不足していると判断し、感情面のケアも必要なため有人対応を推奨。",
+        streamTemplate: [
+          { speaker: "customer", text: "あの、今月の請求がいつもより高い気がするんですが、どういうことですか？" },
+          { speaker: "ai", text: "お問い合わせありがとうございます。今月のご請求が高くなっている理由をお調べしますので、ご契約中のプラン名を教えていただけますか？" },
+          { speaker: "customer", text: "多分ビジネスプラン…だったと思います。とにかく先月より5千円くらい高いんですよね。" },
+          { speaker: "ai", text: "ありがとうございます。お調べしたところ、今月から音声通話オプションをご追加いただいており、そのご利用分が加算されています。" },
+          { speaker: "customer", text: "いや、それは分かったんですけど、そんなに使ってないはずなんですよ。本当にその料金になるのか、人と話して確認したいです。" }
+        ]
+      },
+      "call-human-1": {
+        summary:
+          "機能の操作方法に関する問い合わせ。すでに有人オペレーターに転送済みで、操作案内をしながら画面共有も検討している状況。",
+        statusLabel: "有人対応中",
+        statusNote: "難しい操作説明のため、オペレーターが画面共有を提案予定。",
+        streamTemplate: [
+          { speaker: "customer", text: "さきほどメールで案内が来た『レポート画面』に行きたいんですが、どこから開けばいいですか？" },
+          { speaker: "ai", text: "恐れ入ります。こちらの内容は、担当オペレーターにお繋ぎして詳しくご案内しますね。" },
+          { speaker: "ai", text: "ただいま担当者にお繋ぎしていますので、そのままお待ちください。" },
+          { speaker: "human", text: "お待たせいたしました。オペレーターの鈴木です。いま、PCで管理画面は開いていらっしゃいますか？" },
+          { speaker: "customer", text: "はい、ホーム画面までは開けました。" }
+        ]
+      },
+      "call-ai-end-1": {
+        summary:
+          "営業時間外の問い合わせ。AIが要件を聞き取り、折り返し希望として受付完了済み。",
+        statusLabel: "AIで完結（折り返し受付）",
+        statusNote: "折り返しリストに登録済み。オペレーターの対応は不要。",
+        streamTemplate: [
+          { speaker: "customer", text: "すみません、請求に関して折り返しをお願いしたいんですが、今は営業時間外ですか？" },
+          { speaker: "ai", text: "はい、現在は営業時間外となっておりますが、折り返しのお電話を承ることができます。" },
+          { speaker: "ai", text: "折り返しをご希望の日時と、簡単なご用件をお伺いしてもよろしいでしょうか？" },
+          { speaker: "customer", text: "明日の午前中で、料金の内訳について詳しく教えてほしいです。" },
+          { speaker: "ai", text: "承知しました。明日の午前中に、料金の内訳について担当者より折り返しのお電話を差し上げます。" }
+        ]
+      },
+      "call-human-2": {
+        summary:
+          "請求書の宛名変更に関する依頼。AIが要件を整理し、請求専任オペレーターへ転送済み。現在は手続き方法と締め日の案内中。",
+        statusLabel: "有人対応中（請求窓口）",
+        statusNote: "名義変更の手続きに本人確認が必要なため、オペレーターで対応中。",
+        streamTemplate: [
+          { speaker: "customer", text: "請求書の宛名を会社名に変えたいんですけど、どうしたらいいですか？" },
+          { speaker: "ai", text: "承知しました。請求書の宛名変更ですね。こちらは請求専任の担当者にお繋ぎいたします。" },
+          { speaker: "human", text: "請求窓口の田中です。現在の宛名と、変更後の会社名を教えていただけますか？" },
+          { speaker: "customer", text: "今は個人名で、変更後は『〇〇株式会社』にしたいです。" }
+        ]
+      }
+    };
+
+    // ===== モーダル制御 =====
+    const monitorModal = document.getElementById("monitor-modal");
+    const monitorBackdrop = document.getElementById("monitor-backdrop");
+    const monitorClose = document.getElementById("monitor-close");
+    const monitorTitle = document.getElementById("monitor-title");
+    const monitorMeta = document.getElementById("monitor-meta");
+    const monitorSummaryText = document.getElementById("monitor-summary-text");
+    const monitorStatusPill = document.getElementById("monitor-status-pill");
+    const monitorStatusNote = document.getElementById("monitor-status-note");
+    const monitorStreamLog = document.getElementById("monitor-stream-log");
+    const monitorStopBtn = document.getElementById("monitor-stop-stream");
+    const monitorResumeBtn = document.getElementById("monitor-resume-stream");
+
+    let currentCallId = null;
+    let streamIntervalId = null;
+    let streamIndex = 0;
+    let streamPaused = false;
+
+    function appendTurn(turn) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "turn";
+
+      const label = document.createElement("div");
+      label.className = "turn-label";
+      label.textContent =
+        turn.speaker === "customer"
+          ? "お客様"
+          : turn.speaker === "ai"
+          ? "AIオペレーター"
+          : "オペレーター";
+
+      const content = document.createElement("div");
+      content.className =
+        "turn-content" +
+        (turn.speaker === "ai" || turn.speaker === "human"
+          ? " turn-content-ai"
+          : "");
+
+      content.textContent = turn.text;
+      wrapper.appendChild(label);
+      wrapper.appendChild(content);
+      monitorStreamLog.appendChild(wrapper);
+
+      // スクロールを一番下に
+      monitorStreamLog.scrollTop = monitorStreamLog.scrollHeight;
+    }
+
+    function startStream(callId) {
+      const details = callDetails[callId];
+      if (!details) return;
+
+      streamIndex = 0;
+      streamPaused = false;
+      monitorStreamLog.innerHTML = "";
+
+      // 既にインターバルが動いていたらクリア
+      if (streamIntervalId) {
+        clearInterval(streamIntervalId);
+        streamIntervalId = null;
+      }
+
+      // 最初の2ターンくらいは即表示
+      const firstTurns = details.streamTemplate.slice(0, 2);
+      firstTurns.forEach((t) => appendTurn(t));
+      streamIndex = firstTurns.length;
+
+      // 以降は数秒ごとに1ターンずつ追加
+      streamIntervalId = setInterval(() => {
+        if (streamPaused) return;
+
+        if (streamIndex >= details.streamTemplate.length) {
+          clearInterval(streamIntervalId);
+          streamIntervalId = null;
+          return;
+        }
+        appendTurn(details.streamTemplate[streamIndex]);
+        streamIndex++;
+      }, 3000);
+    }
+
+    function openMonitor(callId, meta) {
+      currentCallId = callId;
+      const details = callDetails[callId];
+
+      monitorTitle.textContent = "通話モニタリング";
+      monitorMeta.textContent = `発信者: ${meta.caller} / キュー: ${meta.queue} / 状態: ${meta.status}`;
+      monitorSummaryText.textContent = details ? details.summary : "要約情報がありません。";
+      monitorStatusPill.textContent = details ? details.statusLabel : "ステータス不明";
+      monitorStatusNote.textContent = details ? details.statusNote : "メモ情報がありません。";
+
+      monitorModal.classList.add("is-open");
+      monitorBackdrop.classList.add("is-open");
+
+      startStream(callId);
+    }
+
+    function closeMonitor() {
+      monitorModal.classList.remove("is-open");
+      monitorBackdrop.classList.remove("is-open");
+      currentCallId = null;
+      if (streamIntervalId) {
+        clearInterval(streamIntervalId);
+        streamIntervalId = null;
+      }
+    }
+
+    monitorClose.addEventListener("click", closeMonitor);
+    monitorBackdrop.addEventListener("click", closeMonitor);
+
+    monitorStopBtn.addEventListener("click", () => {
+      streamPaused = true;
+    });
+
+    monitorResumeBtn.addEventListener("click", () => {
+      streamPaused = false;
+    });
+
+    // 通話行クリック → モーダル表示
+    document.querySelectorAll(".call-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const callId = row.getAttribute("data-call-id");
+        const meta = {
+          caller: row.getAttribute("data-caller"),
+          queue: row.getAttribute("data-queue"),
+          status: row.getAttribute("data-status")
+        };
+        openMonitor(callId, meta);
+      });
+    });
+  </script>
+</body>
+</html>

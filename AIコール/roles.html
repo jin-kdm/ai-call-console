@@ -1,0 +1,173 @@
+<!-- main 部分だけ差し替え -->
+<main class="main">
+  <div class="main-header">
+    <div>
+      <h1 class="main-title">権限管理</h1>
+      <p class="main-subtitle">
+        ロール（権限セット）を管理します。どの画面・機能にアクセスできるかをロール単位で制御します。
+      </p>
+    </div>
+    <div class="main-tools">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>ロール数：<span id="role-count">0</span></span>
+      </div>
+      <button class="btn-primary" type="button" id="btn-new-role">
+        ＋ 新規ロール作成
+      </button>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">ロール一覧</h2>
+        <p class="card-subtitle">
+          システム管理者 / スーパーバイザー / オペレーター / 閲覧のみ などのロールを定義します。
+        </p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <input
+          type="text"
+          class="input"
+          id="search-role"
+          placeholder="ロール名 / 説明 / 適用範囲 で検索"
+        >
+        <button type="button" class="btn-outline" id="search-role-clear">
+          条件クリア
+        </button>
+      </div>
+    </div>
+
+    <p class="card-meta">
+      ※ 実装時には、各ロールに対して「画面単位の閲覧・編集・削除可否」や「キュー単位の統計閲覧権限」などを細かく設定する想定です。
+    </p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ロール名</th>
+            <th>説明</th>
+            <th>適用範囲</th>
+            <th>付与ユーザー数</th>
+            <th>権限の粒度</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="role-tbody">
+          <tr class="role-row"
+              data-name="システム管理者"
+              data-scope="全体"
+              data-desc="全機能へのフルアクセス">
+            <td><div class="user-name">システム管理者</div></td>
+            <td>システム全体の設定・ユーザー管理・回線設定など全権限を持つロール</td>
+            <td><span class="tag">システム全体</span></td>
+            <td>2</td>
+            <td>高（全機能）</td>
+            <td>
+              <button type="button" class="btn-inline permission">権限詳細</button>
+              <button type="button" class="btn-inline edit">編集</button>
+            </td>
+          </tr>
+
+          <tr class="role-row"
+              data-name="スーパーバイザー"
+              data-scope="コールセンター"
+              data-desc="通話モニタ・レポート閲覧・一部設定変更">
+            <td><div class="user-name">スーパーバイザー</div></td>
+            <td>オペレーターのモニタリング・ささやき・割込、レポート閲覧が可能</td>
+            <td><span class="tag">コールセンター単位</span></td>
+            <td>5</td>
+            <td>中（運用系中心）</td>
+            <td>
+              <button type="button" class="btn-inline permission">権限詳細</button>
+              <button type="button" class="btn-inline edit">編集</button>
+            </td>
+          </tr>
+
+          <tr class="role-row"
+              data-name="オペレーター"
+              data-scope="キュー割当"
+              data-desc="着信応対・簡易検索のみ">
+            <td><div class="user-name">オペレーター</div></td>
+            <td>割り当てられたキューの通話応対と、基本的な顧客情報の参照が可能</td>
+            <td><span class="tag">割当キューのみ</span></td>
+            <td>40</td>
+            <td>低（応対のみ）</td>
+            <td>
+              <button type="button" class="btn-inline permission">権限詳細</button>
+              <button type="button" class="btn-inline edit">編集</button>
+            </td>
+          </tr>
+
+          <tr class="role-row"
+              data-name="レポート閲覧のみ"
+              data-scope="レポート"
+              data-desc="統計とレポートの閲覧のみ">
+            <td><div class="user-name">レポート閲覧のみ</div></td>
+            <td>通話ログやダッシュボードの閲覧権限のみ。設定変更は不可。</td>
+            <td><span class="tag">レポートのみ</span></td>
+            <td>6</td>
+            <td>限定（閲覧）</td>
+            <td>
+              <button type="button" class="btn-inline permission">権限詳細</button>
+              <button type="button" class="btn-inline edit">編集</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ロール数 & 検索
+  const roleRows = Array.from(document.querySelectorAll(".role-row"));
+  const roleCountLabel = document.getElementById("role-count");
+  const roleSearchInput = document.getElementById("search-role");
+  const roleSearchClear = document.getElementById("search-role-clear");
+
+  function applyRoleFilter() {
+    const keyword = (roleSearchInput.value || "").trim().toLowerCase();
+    let visible = 0;
+    roleRows.forEach(row => {
+      const name = (row.dataset.name || "").toLowerCase();
+      const scope = (row.dataset.scope || "").toLowerCase();
+      const desc = (row.dataset.desc || "").toLowerCase();
+      const match =
+        keyword === "" ||
+        name.includes(keyword) ||
+        scope.includes(keyword) ||
+        desc.includes(keyword);
+      row.style.display = match ? "" : "none";
+      if (match) visible++;
+    });
+    roleCountLabel.textContent = visible.toString();
+  }
+  applyRoleFilter();
+  roleSearchInput.addEventListener("input", applyRoleFilter);
+  roleSearchClear.addEventListener("click", () => {
+    roleSearchInput.value = "";
+    applyRoleFilter();
+  });
+
+  // 操作ボタン（ダミー）
+  document.getElementById("btn-new-role").addEventListener("click", () => {
+    alert("【ダミー】新規ロール作成画面に遷移する想定です。");
+  });
+
+  roleRows.forEach(row => {
+    const name = row.dataset.name || "";
+    const permBtn = row.querySelector(".btn-inline.permission");
+    const editBtn = row.querySelector(".btn-inline.edit");
+
+    permBtn.addEventListener("click", () => {
+      alert("【ダミー】ロール「" + name + "」に含まれる個別権限の一覧画面に遷移する想定です。");
+    });
+
+    editBtn.addEventListener("click", () => {
+      alert("【ダミー】ロール「" + name + "」の編集画面に遷移する想定です。");
+    });
+  });
+</script>
