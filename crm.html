@@ -333,18 +333,32 @@
           <div class="app-logo-mark">AI</div>
           <div>
             <div class="app-logo-text-main">Inbound Call System</div>
-            <div class="app-logo-text-sub">CRM</div>
+            <div class="app-logo-text-sub">ダッシュボード</div>
           </div>
         </div>
       </div>
+    
       <div class="topbar-right">
+        <!-- 🌐 ここが追加部分：グローバル検索 -->
+        <form class="global-search" id="global-search-form">
+          <input
+            id="global-search-input"
+            class="global-search-input"
+            type="search"
+            placeholder="例: ダッシュボード / オペレーター / ログ / CRM..."
+          />
+          <button class="global-search-btn" type="submit">検索</button>
+        </form>
+    
+        <!-- 既存：時刻 & ユーザー情報 -->
         <span class="timestamp" id="timestamp"></span>
         <div class="user-pill">
-          <div class="user-avatar">📇</div>
-          <span>CRM User</span>
+          <div class="user-avatar">👤</div>
+          <span>Admin User</span>
         </div>
       </div>
     </header>
+    
 
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
@@ -872,5 +886,6 @@
         alert("【ダミー】新規顧客登録画面に遷移する想定です。");
       });
   </script>
+  <script src="global-search.js"></script>
 </body>
 </html>
